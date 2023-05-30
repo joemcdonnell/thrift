@@ -295,7 +295,6 @@ bool TSSLSocket::hasPendingDataToRead() {
 
 void TSSLSocket::init() {
   handshakeCompleted_ = false;
-  readRetryCount_ = 0;
   eventSafe_ = false;
 }
 
@@ -436,13 +435,14 @@ uint32_t TSSLSocket::read(uint8_t* buf, uint32_t len) {
   if (!checkHandshake())
     throw TTransportException(TTransportException::UNKNOWN, "retry again");
   int32_t bytes = 0;
-  while (readRetryCount_ < maxRecvRetries_) {
+  int32_t readRetryCount = 0;
+  while (readRetryCount < maxRecvRetries_) {
     bytes = SSL_read(ssl_, buf, len);
     int32_t errno_copy = THRIFT_GET_SOCKET_ERROR;
     int32_t error = SSL_get_error(ssl_, bytes);
-    readRetryCount_++;
+    readRetryCount++;
     if (error == SSL_ERROR_NONE) {
-      readRetryCount_ = 0;
+      readRetryCount = 0;
       break;
     }
     unsigned int waitEventReturn;
@@ -460,7 +460,7 @@ uint32_t TSSLSocket::read(uint8_t* buf, uint32_t len) {
             && (errno_copy != THRIFT_EAGAIN)) {
               break;
         }
-        if (readRetryCount_ >= maxRecvRetries_) {
+        if (readRetryCount >= maxRecvRetries_) {
           // THRIFT_EINTR needs to be handled manually and we can tolerate
           // a certain number
           break;
@@ -470,7 +470,7 @@ uint32_t TSSLSocket::read(uint8_t* buf, uint32_t len) {
       case SSL_ERROR_WANT_READ:
       case SSL_ERROR_WANT_WRITE:
         if (isLibeventSafe()) {
-          if (readRetryCount_ < maxRecvRetries_) {
+          if (readRetryCount < maxRecvRetries_) {
             // THRIFT_EINTR needs to be handled manually and we can tolerate
             // a certain number
             throw TTransportException(TTransportException::UNKNOWN, "retry again");
@@ -480,7 +480,7 @@ uint32_t TSSLSocket::read(uint8_t* buf, uint32_t len) {
         // in the case of SSL_ERROR_SYSCALL we want to wait for an read event again
         else if ((waitEventReturn = waitForEvent(error != SSL_ERROR_WANT_WRITE)) == TSSL_EINTR ) {
           // repeat operation
-          if (readRetryCount_ < maxRecvRetries_) {
+          if (readRetryCount < maxRecvRetries_) {
             // THRIFT_EINTR needs to be handled manually and we can tolerate
             // a certain number
             continue;
@@ -492,7 +492,7 @@ uint32_t TSSLSocket::read(uint8_t* buf, uint32_t len) {
             // socket operations, before any data becomes available by SSL_read().
             // Therefore the number of retries should not be increased and
             // the operation should be repeated.
-            readRetryCount_--;
+            readRetryCount--;
             continue;
         }
         throw TTransportException(TTransportException::INTERNAL_ERROR, "unkown waitForEvent return value");

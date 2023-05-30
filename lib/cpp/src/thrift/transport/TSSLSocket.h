@@ -179,7 +179,6 @@ protected:
 
 private:
   bool handshakeCompleted_;
-  int readRetryCount_;
   bool eventSafe_;
 
   void init();
