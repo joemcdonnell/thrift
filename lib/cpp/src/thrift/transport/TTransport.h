@@ -23,6 +23,7 @@
 #include <thrift/Thrift.h>
 #include <thrift/TConfiguration.h>
 #include <thrift/transport/TTransportException.h>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -260,9 +261,9 @@ public:
    *
    * @param size  real message size
    */
-  void updateKnownMessageSize(long int size)
+  void updateKnownMessageSize(int64_t size)
   {
-    long int consumed = knownMessageSize_ - remainingMessageSize_;
+    int64_t consumed = knownMessageSize_ - remainingMessageSize_;
     resetConsumedMessageSize(size);
     countConsumedMessageBytes(consumed);
   }
@@ -272,7 +273,7 @@ public:
    *
    * @param numBytes  numBytes bytes of data
    */
-  void checkReadBytesAvailable(long int numBytes)
+  void checkReadBytesAvailable(int64_t numBytes)
   {
     if (remainingMessageSize_ < numBytes)
       throw TTransportException(TTransportException::END_OF_FILE, "MaxMessageSize reached");
@@ -280,21 +281,21 @@ public:
 
 protected:
   std::shared_ptr<TConfiguration> configuration_;
-  long int remainingMessageSize_;
-  long int knownMessageSize_;
+  int64_t remainingMessageSize_;
+  int64_t knownMessageSize_;
 
-  inline long int getRemainingMessageSize() { return remainingMessageSize_; }
-  inline void setRemainingMessageSize(long int remainingMessageSize) { remainingMessageSize_ = remainingMessageSize; }
-  inline int getMaxMessageSize() { return configuration_->getMaxMessageSize(); }
-  inline long int getKnownMessageSize() { return knownMessageSize_; }
-  void setKnownMessageSize(long int knownMessageSize) { knownMessageSize_ = knownMessageSize; }
+  inline int64_t getRemainingMessageSize() { return remainingMessageSize_; }
+  inline void setRemainingMessageSize(int64_t remainingMessageSize) { remainingMessageSize_ = remainingMessageSize; }
+  inline int64_t getMaxMessageSize() { return configuration_->getMaxMessageSize(); }
+  inline int64_t getKnownMessageSize() { return knownMessageSize_; }
+  void setKnownMessageSize(int64_t knownMessageSize) { knownMessageSize_ = knownMessageSize; }
 
   /**  
    * Resets RemainingMessageSize to the configured maximum
    * 
    *  @param newSize  configured size
    */
-  void resetConsumedMessageSize(long newSize = -1)
+  void resetConsumedMessageSize(int64_t newSize = -1)
   {
     // full reset 
     if (newSize < 0)
@@ -317,7 +318,7 @@ protected:
    * 
    *  @param numBytes  Consumes numBytes
    */
-  void countConsumedMessageBytes(long int numBytes)
+  void countConsumedMessageBytes(int64_t numBytes)
   {
     if (remainingMessageSize_ >= numBytes)
     {

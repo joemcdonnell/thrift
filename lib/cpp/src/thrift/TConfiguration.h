@@ -20,29 +20,31 @@
 #ifndef THRIFT_TCONFIGURATION_H
 #define THRIFT_TCONFIGURATION_H
 
+#include <cstdint>
+
 namespace apache {
 namespace thrift {
 
 class TConfiguration
 {
 public:
-  TConfiguration(int maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE, 
+  TConfiguration(int64_t maxMessageSize = DEFAULT_MAX_MESSAGE_SIZE, 
                 int maxFrameSize = DEFAULT_MAX_FRAME_SIZE, int recursionLimit = DEFAULT_RECURSION_DEPTH)
     : maxMessageSize_(maxMessageSize), maxFrameSize_(maxFrameSize), recursionLimit_(recursionLimit) {}
 
-  const static int DEFAULT_MAX_MESSAGE_SIZE = 100 * 1024 * 1024;
+  const static int64_t DEFAULT_MAX_MESSAGE_SIZE = 100 * 1024 * 1024;
   const static int DEFAULT_MAX_FRAME_SIZE = 16384000;      // this value is used consistently across all Thrift libraries
   const static int DEFAULT_RECURSION_DEPTH = 64;
 
-  inline int  getMaxMessageSize() { return maxMessageSize_; }
-  inline void setMaxMessageSize(int maxMessageSize) { maxMessageSize_ = maxMessageSize; } 
+  inline int64_t  getMaxMessageSize() { return maxMessageSize_; }
+  inline void setMaxMessageSize(int64_t maxMessageSize) { maxMessageSize_ = maxMessageSize; } 
   inline int getMaxFrameSize() { return maxFrameSize_; }
   inline void setMaxFrameSize(int maxFrameSize) { maxFrameSize_ = maxFrameSize; }
   inline int getRecursionLimit() { return recursionLimit_; }
   inline void setRecursionLimit(int recursionLimit) { recursionLimit_ = recursionLimit; }
 
 private:
-  int maxMessageSize_ = DEFAULT_MAX_MESSAGE_SIZE;
+  int64_t maxMessageSize_ = DEFAULT_MAX_MESSAGE_SIZE;
   int maxFrameSize_ = DEFAULT_MAX_FRAME_SIZE;
   int recursionLimit_ = DEFAULT_RECURSION_DEPTH;
 
