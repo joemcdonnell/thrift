@@ -86,7 +86,7 @@ public:
   }
 
   virtual ~Thread() {
-    if (!detached_ && thread_->joinable()) {
+    if (!detached_ && state_ != uninitialized && thread_->joinable()) {
       try {
         join();
       } catch (...) {
